@@ -14,6 +14,7 @@ export default function FormSurvey() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
+  const justSelected = useRef(false);
 
   const total = questions.length;
   const progress = step < 0 ? 0 : ((step + 1) / total) * 100;
@@ -53,6 +54,7 @@ export default function FormSurvey() {
 
   const select = useCallback(
     (qid: number, opt: string, type: Question["type"]) => {
+      justSelected.current = true;
       setAnswers((p) => {
         if (type === "single" || type === "scale")
           return { ...p, [qid]: opt };
@@ -87,11 +89,13 @@ export default function FormSurvey() {
     }
   }, [answers, canGo]);
 
-  // Auto-advance on single/scale select
+  // Auto-advance on single/scale select (only when user just clicked)
   useEffect(() => {
     if (!q || submitted) return;
+    if (!justSelected.current) return;
     if ((q.type === "single" || q.type === "scale") && answers[q.id]) {
       const t = setTimeout(() => {
+        justSelected.current = false;
         if (step < total - 1) {
           setDir(1);
           setStep((s) => s + 1);
